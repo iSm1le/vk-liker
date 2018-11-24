@@ -1,6 +1,6 @@
 {
   "name": "vk-liker",
-  "version": "0.0.2",
+  "version": "0.2",
   "description": "Likes all finded wall posts on current page",
   "main": "index.js",
   "scripts": {
