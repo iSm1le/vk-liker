@@ -15,4 +15,5 @@
 // @grant        GM_getValue
 // @license      Apache-2.0
 // @run-at       document-end
+// @noframes
 // ==/UserScript==
