@@ -4,11 +4,11 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 
 /*
  * @File:          index.js
- * @Project:       hoverimg
+ * @Project:       vk-liker
  * @File Created:  Wednesday, 12th December 2018 10:27:42 pm
  * @Author:        Mikhail K. (iSm1le) <ism1le@xaked.com>
  * -----
- * @Last Modified: Wednesday, 12th December 2018 10:50:40 pm
+ * @Last Modified: Sunday, 16th December 2018 1:11:05 am
  * @Modified By:   Mikhail K. (iSm1le) <ism1le@xaked.com>>
  * -----
  * Copyright 2018 Mikhail K. (iSm1le)
@@ -16,7 +16,7 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
  */
 
 // ==UserScript==
-// @name         VK Like all posts in group
+// @name         VK Like all posts in group [d]
 // @namespace    https://xaked.com/
 // @version      1.0
 // @description  Likes all finded wall posts on current page
