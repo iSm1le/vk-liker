@@ -1,11 +1,15 @@
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
 /*
  * @File:          index.js
- * @Project:       vk-liker
- * @File Created:  Saturday, 24th November 2018 1:35:30 am
+ * @Project:       hoverimg
+ * @File Created:  Wednesday, 12th December 2018 10:27:42 pm
  * @Author:        Mikhail K. (iSm1le) <ism1le@xaked.com>
  * -----
- * @Last Modified: Saturday, 24th November 2018 1:39:33 am
- * @Modified By:   Mikhail K. (iSm1le) <ism1le@xaked.com>
+ * @Last Modified: Wednesday, 12th December 2018 10:50:40 pm
+ * @Modified By:   Mikhail K. (iSm1le) <ism1le@xaked.com>>
  * -----
  * Copyright 2018 Mikhail K. (iSm1le)
  * Licensed under the Apache License, Version 2.0 (https://www.apache.org/licenses/LICENSE-2.0)
@@ -14,7 +18,7 @@
 // ==UserScript==
 // @name         VK Like all posts in group
 // @namespace    https://xaked.com/
-// @version      0.2
+// @version      1.0
 // @description  Likes all finded wall posts on current page
 // @updateURL    https://raw.githubusercontent.com/iSm1le/vk-liker/master/latest.js
 // @downloadURL  https://raw.githubusercontent.com/iSm1le/vk-liker/master/index.js
@@ -31,144 +35,165 @@
 // @noframes
 // ==/UserScript==
 
-function getSettings() {
-  let settings = [];
-  if (GM_getValue('is_groups')) { // eslint-disable-line no-undef, new-cap
-    try {
-      settings = JSON.parse(GM_getValue('is_groups')); // eslint-disable-line no-undef, new-cap
-    } catch (e) {
-      console.error(e);
+var VKBot = function () {
+  function VKBot() {
+    var debug = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : false;
+
+    var _this = this;
+
+    var scanIntervalTime = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 5000;
+    var likeInterval = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : 2000;
+
+    _classCallCheck(this, VKBot);
+
+    this.debug = debug;
+    this.pathname = location.pathname;
+    this.isMonitored = false; // page is need to monitor?
+    this.settings = [];
+    this.modal = null;
+    this.createModal();
+    this.scanIntervalTime = scanIntervalTime;
+    this.unNodes = false;
+    this.likeInterval = likeInterval;
+    this.liking = false;
+    this.scanInterval = setInterval(function () {
+      _this.scan();
+    }, this.scanIntervalTime);
+  }
+
+  _createClass(VKBot, [{
+    key: 'scan',
+    value: function scan() {
+      this.getSettings();
+      this.checkIsMonitored();
+      this.updateModal();
+      this.log('Page monitoring: ' + this.isMonitored);
+      if (this.isMonitored && !this.liking) {
+        this.getNotLikedPosts();
+        this.log(this.unNodes.length);
+        this.likePosts();
+      }
     }
-  }
-  return settings;
-}
-
-function setSettings(settings) {
-  return GM_setValue('is_groups', JSON.stringify(settings)); // eslint-disable-line no-undef, new-cap
-}
-
-function getGroupId(doc) {
-  try {
-    const pageWallSearch = doc.getElementsByClassName('ui_tab_plain ui_tab_search')[0].href;
-    let groupId;
-    if (pageWallSearch) {
-      groupId = pageWallSearch.match(/\d{5,10}/g);
-    }
-    return groupId[0];
-  } catch (e) {
-    return null;
-  }
-}
-
-function toggleMonitoring(currentGroupId, modal) {
-  let settings = getSettings(); // eslint-disable-line prefer-const
-  if (settings.indexOf(currentGroupId) >= 0) {
-    settings.splice(settings.indexOf(currentGroupId), 1);
-    modal.style.background = 'red';
-  } else {
-    settings.push(currentGroupId);
-    modal.style.background = 'green';
-  }
-  setSettings(settings);
-  location.reload();
-  return true;
-}
-
-function showModal(doc, currentGroupId, monitoring) {
-  const body = doc.getElementsByTagName('body')[0];
-  const likeWindow = doc.createElement('div');
-  const likeWindowText = doc.createElement('div');
-  likeWindowText.innerHTML = monitoring ? 'E' : 'D';
-  const likeWindowTextStyle = 'position: relative; text-align: center; align-content: center; margin-top: 14px; font-size: 1rem; cursor: pointer;';
-  const likeWindowStyle = 'width: 45px; height: 45px; position: fixed; bottom: 15px; right: 15px; border-radius: 50%; cursor: pointer;';
-  body.appendChild(likeWindow);
-  likeWindow.appendChild(likeWindowText);
-  likeWindow.style.cssText = likeWindowStyle;
-  likeWindowText.style.cssText = likeWindowTextStyle;
-  likeWindow.style.background = monitoring ? 'green' : 'red';
-  likeWindow.onclick = () => toggleMonitoring(currentGroupId, likeWindow);
-  return likeWindow;
-}
-
-function getNotLikedPosts(doc) {
-  let nodes = doc.querySelectorAll('.like_wrap:not(.lite)'); // eslint-disable-line prefer-const
-  let unNodes = []; // eslint-disable-line prefer-const
-  for (let i = 0; i < nodes.length; i++) {
-    if (nodes[i].children[0].children[0].children[0].classList.length === 3 || (nodes[i].children[0].children[0].children[0].classList.length === 4 && nodes[i].children[0].children[0].children[0].classList.value.indexOf('animate') >= 0)) {
-      unNodes.push(nodes[i]);
-    }
-  }
-  return unNodes;
-}
-
-function likePosts(doc, modal, likeTime = 2000) {
-  let posts = getNotLikedPosts(doc); // eslint-disable-line prefer-const
-  const modalText = modal.children[0];
-  if (posts.length > 0) {
-    let postNum = 0;
-    modalText.innerHTML = `${postNum}/${posts.length}`;
-    const likeInterval = setInterval(() => {
-      if (postNum >= posts.length) {
-        modalText.innerHTML = 'E';
-        clearInterval(likeInterval);
+  }, {
+    key: 'checkIsMonitored',
+    value: function checkIsMonitored() {
+      this.log('Current page: ' + location.pathname);
+      this.pathname = location.pathname;
+      if (this.settings.indexOf(this.pathname) >= 0) {
+        this.isMonitored = true;
       } else {
-        posts[postNum].children[0].children[0].children[0].click();
-        postNum++;
-        modalText.innerHTML = `${postNum}/${posts.length}`;
+        this.isMonitored = false;
       }
-    }, likeTime);
-  } else {
-    setTimeout(() => { modalText.innerHTML = 'E'; }, 1000);
-  }
-  return true;
-}
-
-function init(document, pathname) {
-  let settings = getSettings();
-  if (!settings) {
-    setSettings([]);
-    settings = getSettings();
-  }
-  let currentGroupId = getGroupId(document);
-  let monitoring = settings.indexOf(currentGroupId) >= 0 ? true : false; // eslint-disable-line prefer-const
-  const modal = showModal(document, currentGroupId, monitoring);
-  if (!currentGroupId) {
-    modal.parentNode.removeChild(modal);
-  }
-  if (monitoring) {
-    const interval = setInterval(() => {
-      if (location.pathname !== pathname) {
-        modal.parentNode.removeChild(modal);
-        clearInterval(interval);
-      }
-      if (modal.children[0].innerHTML === 'E') {
-        currentGroupId = getGroupId(document);
-        if (currentGroupId) {
-          modal.children[0].innerHTML = 'S';
-          likePosts(document, modal, 2000);
-        } else {
-          modal.parentNode.removeChild(modal);
-          clearInterval(interval);
+    }
+  }, {
+    key: 'getSettings',
+    value: function getSettings() {
+      if (GM_getValue('is_pages')) {
+        // eslint-disable-line
+        try {
+          this.settings = JSON.parse(GM_getValue('is_pages')); // eslint-disable-line
+          this.log('got settings: ' + this.settings);
+        } catch (e) {
+          this.log(e);
         }
       }
-    }, 5 * 1000);
-  }
-}
-
-/* eslint-disable func-names */
-
-(function() {
-  if (window.top !== window.self) {
-    return;
-  }
-  let pathname = location.pathname;
-  init(document, pathname);
-  const pageCheck = setInterval(() => { // eslint-disable-line no-unused-vars
-    if (location.pathname !== pathname) {
-      pathname = location.pathname;
-      init(document, pathname);
     }
-  }, 500);
-})();
+  }, {
+    key: 'saveSettings',
+    value: function saveSettings() {
+      GM_setValue('is_pages', JSON.stringify(this.settings)); // eslint-disable-line
+    }
+  }, {
+    key: 'createModal',
+    value: function createModal() {
+      var _this2 = this;
 
-/* eslint-enable func-names */
+      this.modal = document.createElement('div');
+      this.modal.innerHTML = 'D';
+      this.modal.style.cssText = 'width: 45px; height: 45px; position: fixed; bottom: 15px; right: 15px; border-radius: 50%; cursor: pointer; background: red; text-align: center; display: flex; flex-direction: column; justify-content: center; font-size: large;';
+      document.getElementsByTagName('body')[0].appendChild(this.modal);
+      this.modal.onclick = function () {
+        return _this2.togglePageMonitoring(location.pathname);
+      };
+    }
+  }, {
+    key: 'togglePageMonitoring',
+    value: function togglePageMonitoring(pathname) {
+      this.getSettings();
+      if (this.settings.indexOf(pathname) >= 0) {
+        this.isMonitored = false;
+        this.liking = false;
+        this.settings.splice(this.settings.indexOf(pathname), 1);
+      } else {
+        this.isMonitored = true;
+        this.settings.push(pathname);
+      }
+      this.saveSettings();
+      this.updateModal();
+    }
+  }, {
+    key: 'updateModal',
+    value: function updateModal() {
+      if (this.isMonitored) {
+        this.modal.style.background = 'green';
+        if (!this.liking) {
+          this.modal.innerHTML = 'E';
+        }
+      } else {
+        this.modal.style.background = 'red';
+        this.modal.innerHTML = 'D';
+      }
+    }
+  }, {
+    key: 'getNotLikedPosts',
+    value: function getNotLikedPosts() {
+      var nodes = document.querySelectorAll('.like_wrap:not(.lite)');
+      var unNodes = [];
+      for (var i = 0; i < nodes.length; i++) {
+        if (nodes[i].children[0].children[0].children[0].classList.length === 3 || nodes[i].children[0].children[0].children[0].classList.length === 4 && nodes[i].children[0].children[0].children[0].classList.value.indexOf('animate') >= 0) {
+          unNodes.push(nodes[i]);
+        }
+      }
+      this.unNodes = unNodes;
+    }
+  }, {
+    key: 'likePosts',
+    value: function likePosts() {
+      var _this3 = this;
+
+      if (this.unNodes.length > 0) {
+        this.liking = true;
+        var postNum = 0;
+        var likeInterval = setInterval(function () {
+          if (postNum >= _this3.unNodes.length) {
+            clearInterval(likeInterval);
+            _this3.liking = false;
+            _this3.updateModal();
+          } else {
+            if (!_this3.isMonitored) {
+              clearInterval(likeInterval);
+              _this3.liking = false;
+              _this3.updateModal();
+              return;
+            }
+            _this3.unNodes[postNum].children[0].children[0].children[0].click();
+            postNum++;
+            _this3.modal.innerHTML = postNum + '/' + _this3.unNodes.length;
+          }
+        }, this.likeInterval);
+      }
+    }
+  }, {
+    key: 'log',
+    value: function log(msg) {
+      if (this.debug) {
+        console.log('VKBot: ' + msg);
+      }
+    }
+  }]);
+
+  return VKBot;
+}();
+
+var bot = new VKBot(false, 5000, 2000);
+bot.log('started');

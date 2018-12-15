@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         VK Like all posts in group
 // @namespace    https://xaked.com/
-// @version      0.2
+// @version      1.0
 // @description  Likes all finded wall posts on current page
 // @updateURL    https://raw.githubusercontent.com/iSm1le/vk-liker/master/latest.js
 // @downloadURL  https://raw.githubusercontent.com/iSm1le/vk-liker/master/index.js
