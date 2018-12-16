@@ -5,12 +5,18 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "babel index.js -o dist/index.js",
     "lint": "eslint *.js"
   },
   "author": "iSm1le <ism1le@xaked.com>",
   "license": "Apache-2.0",
   "devDependencies": {
-    "eslint": "^5.9.0",
+    "babel-cli": "^6.26.0",
+    "babel-core": "^6.26.3",
+    "babel-eslint": "^10.0.1",
+    "babel-preset-env": "^1.7.0",
+    "babel-preset-stage-2": "^6.24.1",
+    "eslint": "^5.10.0",
     "eslint-config-alpha": "^3.0.7",
     "eslint-plugin-promise": "^4.0.1"
   },

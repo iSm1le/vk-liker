@@ -12,12 +12,12 @@
  */
 
 // ==UserScript==
-// @name         VK Like all posts in group [d]
+// @name         VK Like all posts in group
 // @namespace    https://xaked.com/
 // @version      1.0
 // @description  Likes all finded wall posts on current page
-// @updateURL    https://raw.githubusercontent.com/iSm1le/vk-liker/master/latest.js
-// @downloadURL  https://raw.githubusercontent.com/iSm1le/vk-liker/master/index.js
+// @updateURL    https://raw.githubusercontent.com/iSm1le/vk-liker/master/dist/latest.js
+// @downloadURL  https://raw.githubusercontent.com/iSm1le/vk-liker/master/dist/index.js
 // @supportURL   https://github.com/iSm1le/vk-liker/issues
 // @icon         https://raw.githubusercontent.com/iSm1le/vk-liker/master/logo-48x48.png
 // @icon64       https://raw.githubusercontent.com/iSm1le/vk-liker/master/logo-64x64.png
@@ -71,7 +71,8 @@ class VKBot {
   }
 
   getSettings() {
-    if (GM_getValue('is_pages')) { // eslint-disable-line
+    if (GM_getValue('is_pages')) {
+      // eslint-disable-line
       try {
         this.settings = JSON.parse(GM_getValue('is_pages')); // eslint-disable-line
         this.log(`got settings: ${this.settings}`);
@@ -123,7 +124,7 @@ class VKBot {
     const nodes = document.querySelectorAll('.like_wrap:not(.lite)');
     const unNodes = [];
     for (let i = 0; i < nodes.length; i++) {
-      if (nodes[i].children[0].children[0].children[0].classList.length === 3 || (nodes[i].children[0].children[0].children[0].classList.length === 4 && nodes[i].children[0].children[0].children[0].classList.value.indexOf('animate') >= 0)) {
+      if (nodes[i].children[0].children[0].children[0].classList.length === 3 || nodes[i].children[0].children[0].children[0].classList.length === 4 && nodes[i].children[0].children[0].children[0].classList.value.indexOf('animate') >= 0) {
         unNodes.push(nodes[i]);
       }
     }
