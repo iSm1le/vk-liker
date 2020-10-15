@@ -1,4 +1,4 @@
-# vk-liker
+# vk-liker (archived)
 
 [![License](https://img.shields.io/badge/License-apache--2.0-green.svg?longCache=true&style=flat-square)](https://github.com/iSm1le/vk-liker/blob/master/LICENSE)
 [![Developer web site](https://img.shields.io/badge/Developer%20site-xaked.com-blue.svg?longCache=true&style=flat-square)](https://xaked.com/)
